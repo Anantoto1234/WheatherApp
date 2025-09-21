@@ -1,0 +1,141 @@
+<div class="weather-app">
+  <header class="header">
+    <div class="header-content">
+      <h1>🌤️ Weather App</h1>
+      <p class="subtitle">Thời tiết chính xác, cập nhật liên tục</p>
+    </div>
+    
+    <div class="search-container">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="city" 
+          (keyup.enter)="onCityChange()"
+          placeholder="Tìm kiếm thành phố..."
+          class="city-input"
+        />
+        <button (click)="onCityChange()" class="search-btn">
+          <span class="search-icon">🔍</span>
+        </button>
+      </div>
+      
+      <button (click)="onLocationClick()" class="location-btn" [disabled]="loading">
+        <span class="location-icon">📍</span>
+        <span>Vị trí hiện tại</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <div class="spinner"></div>
+        <div class="spinner"></div>
+      </div>
+      <p class="loading-text">Đang tải dữ liệu thời tiết...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-container">
+      <div class="error-icon">⚠️</div>
+      <p class="error-text">{{ error }}</p>
+      <button (click)="getCurrentLocationWeather()" class="retry-btn">
+        Thử lại
+      </button>
+    </div>
+
+    <!-- Current Weather -->
+    <div *ngIf="currentWeather && !loading" class="current-weather-card">
+      <div class="weather-header">
+        <div class="location-info">
+          <h2 class="city-name">{{ currentWeather.name }}</h2>
+          <p class="location-type" *ngIf="locationPermission">📍 Vị trí hiện tại</p>
+          <p class="location-type" *ngIf="!locationPermission">🔍 Tìm kiếm</p>
+        </div>
+        <div class="weather-icon-large">
+          <img [src]="getWeatherIcon(currentWeather.weather[0].icon)" 
+               [alt]="currentWeather.weather[0].description"
+               class="weather-icon">
+        </div>
+      </div>
+      
+      <div class="temperature-section">
+        <div class="main-temp" [style.color]="getTemperatureColor(currentWeather.main.temp)">
+          {{ currentWeather.main.temp | number:'1.0-0' }}°C
+        </div>
+        <div class="weather-description">
+          {{ currentWeather.weather[0].description }}
+        </div>
+        <div class="feels-like">
+          Cảm giác như {{ currentWeather.main.feels_like | number:'1.0-0' }}°C
+        </div>
+      </div>
+      
+      <div class="weather-details-grid">
+        <div class="detail-item">
+          <div class="detail-icon">💧</div>
+          <div class="detail-content">
+            <span class="detail-label">Độ ẩm</span>
+            <span class="detail-value">{{ currentWeather.main.humidity }}%</span>
+          </div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-icon">🌡️</div>
+          <div class="detail-content">
+            <span class="detail-label">Áp suất</span>
+            <span class="detail-value">{{ currentWeather.main.pressure }} hPa</span>
+          </div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-icon">💨</div>
+          <div class="detail-content">
+            <span class="detail-label">Gió</span>
+            <span class="detail-value">{{ currentWeather.wind.speed }} m/s {{ getWindDirection(currentWeather.wind.deg) }}</span>
+          </div>
+        </div>
+        
+        <div class="detail-item" *ngIf="currentWeather.visibility">
+          <div class="detail-icon">👁️</div>
+          <div class="detail-content">
+            <span class="detail-label">Tầm nhìn</span>
+            <span class="detail-value">{{ (currentWeather.visibility / 1000) | number:'1.1-1' }} km</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forecast -->
+    <div *ngIf="forecast && !loading" class="forecast-section">
+      <h3 class="forecast-title">📅 Dự báo 5 ngày tới</h3>
+      <div class="forecast-grid">
+        <div *ngFor="let item of getForecastForNextDays(); let i = index" 
+             class="forecast-card" 
+             [style.animation-delay]="(i * 0.1) + 's'">
+          <div class="forecast-date">{{ formatDate(item.dt) }}</div>
+          <div class="forecast-weather">
+            <img [src]="getWeatherIcon(item.weather[0].icon)" 
+                 [alt]="item.weather[0].description"
+                 class="forecast-icon">
+            <span class="forecast-desc">{{ item.weather[0].description }}</span>
+          </div>
+          <div class="forecast-temps">
+            <span class="temp-max">{{ item.main.temp_max | number:'1.0-0' }}°</span>
+            <span class="temp-min">{{ item.main.temp_min | number:'1.0-0' }}°</span>
+          </div>
+          <div class="forecast-details">
+            <div class="forecast-humidity">💧 {{ item.main.humidity }}%</div>
+            <div class="forecast-wind">💨 {{ item.wind.speed }} m/s</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Dữ liệu từ OpenWeatherMap</p>
+  </footer>
+</div>
